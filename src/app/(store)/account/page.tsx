@@ -79,7 +79,7 @@ function AccountContent() {
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault(); setLoading(true); setError('');
         try {
-            const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(registerForm) });
+            const res = await fetch(`${window.location.origin}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(registerForm) });
             const data = await res.json();
             if (data.success) { await signIn('credentials', { email: registerForm.email, password: registerForm.password, siteId, redirect: false }); }
             else { setError(data.error || 'حدث خطأ في التسجيل'); }

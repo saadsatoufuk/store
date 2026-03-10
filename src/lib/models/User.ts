@@ -18,7 +18,7 @@ export interface IUser extends Document {
     phone: string;
     avatar: string;
     addresses: IAddress[];
-    role: 'customer' | 'admin';
+    role: 'customer' | 'admin' | 'owner';
     totalOrders: number;
     totalSpent: number;
     wishlist: mongoose.Types.ObjectId[];
@@ -44,7 +44,7 @@ const UserSchema = new Schema<IUser>({
     phone: { type: String, default: '' },
     avatar: { type: String, default: '' },
     addresses: [AddressSchema],
-    role: { type: String, enum: ['customer', 'admin'], default: 'admin' },
+    role: { type: String, enum: ['customer', 'admin', 'owner'], default: 'customer' },
     totalOrders: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
     wishlist: [{ type: Schema.Types.ObjectId, ref: 'Product' }],

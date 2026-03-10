@@ -54,7 +54,12 @@ export async function GET(request: Request) {
             );
         }
 
-        return NextResponse.json({ siteId: site._id.toString() });
+        return NextResponse.json({ 
+            siteId: site._id.toString(),
+            ownerId: site.ownerId ? site.ownerId.toString() : null,
+            status: site.status,
+            plan: site.plan
+        });
     } catch (error) {
         console.error('Resolve site error:', error);
         return NextResponse.json(

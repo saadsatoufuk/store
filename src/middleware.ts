@@ -24,6 +24,9 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // Platform routes are checked after we attempt to resolve the site,
+    // so if the site doesn't exist (e.g. platform domain), we allow these routes.
+
     const host = request.headers.get('host') || 'localhost';
 
     try {
@@ -34,8 +37,17 @@ export async function middleware(request: NextRequest) {
         const res = await fetch(resolveUrl.toString());
 
         if (!res.ok) {
-            // If site not found, return a JSON error for API routes
-            // or a simple HTML error page for browser requests
+            // If site not found, check if it's a platform route and allow it
+            const PLATFORM_ROUTES = [
+                '/', '/login', '/signup', '/create-store', '/dashboard',
+                '/api/stores', '/api/auth', '/api/landings'
+            ];
+            
+            if (PLATFORM_ROUTES.some(route => route === '/' ? pathname === '/' : pathname.startsWith(route))) {
+                return NextResponse.next();
+            }
+
+            // Otherwise, it's a tenant route without a valid store, return 404 error
             if (pathname.startsWith('/api/')) {
                 return NextResponse.json(
                     { error: 'Store not found for this domain' },
@@ -48,7 +60,12 @@ export async function middleware(request: NextRequest) {
             );
         }
 
-        const { siteId } = await res.json();
+        const { siteId, ownerId } = await res.json();
+
+        // Enforce owner creation if store has no owner yet
+        if (ownerId === null && pathname !== '/create-owner' && !pathname.startsWith('/api/')) {
+            return NextResponse.redirect(new URL('/create-owner', request.url));
+        }
 
         // Set x-site-id header for downstream API routes and server components
         const requestHeaders = new Headers(request.headers);

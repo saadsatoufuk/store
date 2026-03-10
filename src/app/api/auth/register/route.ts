@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import bcrypt from 'bcryptjs';
-import { getSiteId } from '@/lib/tenant';
 
 export async function POST(request: Request) {
     try {
         await connectDB();
-        const siteId = await getSiteId();
+        
+        const siteId = request.headers.get('x-site-id');
+        if (!siteId) {
+            return NextResponse.json(
+                { error: 'Store not found' },
+                { status: 404 }
+            );
+        }
+
         const { name, email, password } = await request.json();
 
         if (!name || !email || !password) {

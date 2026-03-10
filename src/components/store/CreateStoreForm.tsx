@@ -30,9 +30,7 @@ export default function CreateStoreForm() {
         try {
             const res = await fetch('/api/stores', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: formData.name,
                     slug: formData.slug,
@@ -53,9 +51,9 @@ export default function CreateStoreForm() {
                 let redirectUrl = `${protocol}//${formData.slug}.localhost:3000`; // Dev default
                 
                 if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                     const hostParts = window.location.host.split('.');
-                     const apex = hostParts.slice(-2).join('.'); // very basic apex extraction
-                     redirectUrl = `${protocol}//${formData.slug}.${apex}`;
+                        const hostParts = window.location.host.split('.');
+                        const apex = hostParts.slice(-2).join('.'); // very basic apex extraction
+                        redirectUrl = `${protocol}//${formData.slug}.${apex}`;
                 }
                 
                 window.location.href = redirectUrl;
@@ -76,8 +74,12 @@ export default function CreateStoreForm() {
                         <Store className="w-6 h-6 text-foreground" />
                     </div>
                 </div>
-                <h2 className="text-xl font-heading font-bold text-center">إنشاء متجرك الخاص</h2>
-                <p className="text-sm text-muted text-center mt-1">ابدأ البيع عبر الإنترنت في ثوانٍ معدودة.</p>
+                <h2 className="text-xl font-heading font-bold text-center">
+                    إنشاء متجرك الخاص
+                </h2>
+                <p className="text-sm text-muted text-center mt-1">
+                    ابدأ البيع عبر الإنترنت في ثوانٍ معدودة.
+                </p>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -117,33 +119,33 @@ export default function CreateStoreForm() {
                     />
                 </div>
 
-                <div className="space-y-1.5">
-                    <label htmlFor="storeSlug" className="text-sm font-medium text-foreground flex justify-between items-center">
-                        <span>رابط المتجر (بالإنجليزية)</span>
-                        <span className="text-xs text-muted font-normal">حروف صغيرة، بدون مسافات</span>
-                    </label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <Globe className="h-4 w-4 text-muted" />
+                    <div className="space-y-1.5">
+                        <label htmlFor="storeSlug" className="text-sm font-medium text-foreground flex justify-between items-center">
+                            <span>رابط المتجر (بالإنجليزية)</span>
+                            <span className="text-xs text-muted font-normal">حروف صغيرة، بدون مسافات</span>
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <Globe className="h-4 w-4 text-muted" />
+                            </div>
+                            <input
+                                id="storeSlug"
+                                type="text"
+                                required
+                                dir="ltr"
+                                placeholder="my-awesome-shop"
+                                className="w-full pr-10 pl-4 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all font-mono text-left"
+                                value={formData.slug}
+                                onChange={handleSlugChange}
+                                disabled={loading || success}
+                            />
                         </div>
-                        <input
-                            id="storeSlug"
-                            type="text"
-                            required
-                            dir="ltr"
-                            placeholder="my-awesome-shop"
-                            className="w-full pr-10 pl-4 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all font-mono text-left"
-                            value={formData.slug}
-                            onChange={handleSlugChange}
-                            disabled={loading || success}
-                        />
+                        <p className="text-xs text-muted mt-1.5 flex items-center gap-1.5 justify-end" dir="ltr">
+                            <span className="inline-block px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono text-foreground">
+                                {formData.slug || 'your-slug'}.localhost:3000
+                            </span>
+                        </p>
                     </div>
-                    <p className="text-xs text-muted mt-1.5 flex items-center gap-1.5 justify-end" dir="ltr">
-                        <span className="inline-block px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono text-foreground">
-                            {formData.slug || 'your-slug'}.localhost:3000
-                        </span>
-                    </p>
-                </div>
 
                 <button
                     type="submit"
@@ -153,7 +155,7 @@ export default function CreateStoreForm() {
                     {loading ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            جاري الإنشاء...
+                            جاري الحفظ...
                         </>
                     ) : success ? (
                         <>
