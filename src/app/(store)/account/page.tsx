@@ -142,8 +142,9 @@ function AccountContent() {
                 <div className="md:col-span-3">
                     {/* Profile Tab */}
                     {activeTab === 'profile' && (
-                        <div className="bg-white rounded-xl border border-border p-6">
-                            <h2 className="font-heading font-bold text-lg mb-4">الملف الشخصي</h2>
+                        <>
+                            <div className="bg-white rounded-xl border border-border p-6">
+                                <h2 className="font-heading font-bold text-lg mb-4">الملف الشخصي</h2>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center text-xl font-bold">{session.user?.name?.[0]}</div>
@@ -157,6 +158,17 @@ function AccountContent() {
                                 <button className="px-6 py-3 bg-foreground text-white rounded-lg text-sm font-medium">حفظ التغييرات</button>
                             </div>
                         </div>
+
+                        <div className="mt-6 bg-gradient-to-r from-foreground/5 to-foreground/10 rounded-xl border border-foreground/20 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div>
+                                <h3 className="font-heading font-bold text-lg">هل ترغب ببيع منتجاتك؟</h3>
+                                <p className="text-sm text-muted mt-1">ابدأ متجرك الإلكتروني الخاص في ثوانٍ معدودة وانطلق في عالم التجارة الإلكترونية.</p>
+                            </div>
+                            <a href="/create-store" className="whitespace-nowrap px-6 py-3 bg-foreground text-white rounded-lg text-sm font-medium hover:bg-foreground/90 transition-colors">
+                                إنشاء متجري
+                            </a>
+                        </div>
+                        </>
                     )}
 
                     {/* Orders Tab */}
