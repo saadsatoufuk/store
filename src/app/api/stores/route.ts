@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         }
 
         const headersList = await headers();
-        const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost';
+        const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'intilaqapp.com';
         
         // Strict limit: only one store per root host
         const existingStoreOnHost = await Site.findOne({ rootDomain: host });
