@@ -104,10 +104,7 @@ export default function CheckoutPage() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Test mode banner */}
-            <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-sm text-amber-800">
-                <AlertCircle size={16} />
-               
-            </div>
+            
 
             <div className="grid lg:grid-cols-5 gap-8">
                 {/* Form */}
