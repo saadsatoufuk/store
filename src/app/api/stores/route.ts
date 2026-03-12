@@ -34,16 +34,27 @@ export async function POST(request: Request) {
         }
 
         const headersList = await headers();
-        const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'intilaqapp.com';
-        
-        // Strict limit: only one store per root host
-        const existingStoreOnHost = await Site.findOne({ rootDomain: host });
-        if (existingStoreOnHost) {
-            return NextResponse.json(
-                { error: "A store already exists for this domain." },
-                { status: 403 }
-            );
-        }
+
+const host =
+    headersList.get("x-forwarded-host") ||
+    headersList.get("host") ||
+    "intilaqapp.com";
+
+const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "intilaqapp.com";
+
+// استخراج الـ subdomain
+const subdomain = host.replace(`.${rootDomain}`, "");
+
+// Strict limit: only one store per subdomain
+const existingStoreOnHost = await Site.findOne({ subdomain });
+if (existingStoreOnHost) {
+    return NextResponse.json(
+        { error: "A store already exists for this subdomain." },
+        { status: 403 }
+    );
+}
+
+
 
         if (!name || !slug || !domain) {
             return NextResponse.json(
@@ -63,14 +74,19 @@ export async function POST(request: Request) {
             );
         }
 
-        const site = await Site.create({
-            name,
-            subdomain: slug.toLowerCase(),
-            domain,
-            ownerId: ownerId || undefined,
-            rootDomain: host,
-            isActive: true,
-        });
+       const site = await Site.create({
+    name,
+    subdomain: slug.toLowerCase(),
+    domain: `${slug.toLowerCase()}.${rootDomain}`,
+    ownerId: ownerId || undefined,
+    rootDomain,
+    isActive: true,
+});
+
+
+
+
+
 
         return NextResponse.json({ site }, { status: 201 });
     } catch (error) {
