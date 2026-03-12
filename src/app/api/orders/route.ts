@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         await connectDB();
         const siteId = await getSiteId();
         const body = await request.json();
-        const { customer, items, shippingAddress, shippingCost, subtotal, tax, total } = body;
+        const { customer, items, shippingAddress, shippingCost, subtotal, tax, total, paymentMethod, transactionId, senderName, senderPhone, bankName, iban, paymentReceiptUrl } = body;
 
         if (!customer?.email || !items?.length || !shippingAddress) {
             return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 });
@@ -43,7 +43,14 @@ export async function POST(request: Request) {
             subtotal,
             tax,
             total,
-            paymentStatus: 'paid',
+            paymentMethod,
+            transactionId,
+            senderName,
+            senderPhone,
+            bankName,
+            iban,
+            paymentReceiptUrl,
+            paymentStatus: paymentMethod === 'cod' ? 'awaiting_delivery_payment' : 'pending_verification',
             fulfillmentStatus: 'unfulfilled',
         });
 

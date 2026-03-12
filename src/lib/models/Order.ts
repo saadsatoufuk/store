@@ -36,8 +36,15 @@ export interface IOrder extends Document {
     tax: number;
     total: number;
     shippingAddress: IShippingAddress;
-    paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+    paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'pending_verification' | 'awaiting_delivery_payment';
     fulfillmentStatus: 'unfulfilled' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    paymentMethod?: 'bank_transfer' | 'stc_pay' | 'cod';
+    transactionId?: string;
+    senderName?: string;
+    senderPhone?: string;
+    bankName?: string;
+    iban?: string;
+    paymentReceiptUrl?: string;
     stripePaymentIntentId: string;
     trackingNumber: string;
     trackingUrl: string;
@@ -82,8 +89,15 @@ const OrderSchema = new Schema<IOrder>({
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true },
     shippingAddress: ShippingAddressSchema,
-    paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
+    paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded', 'pending_verification', 'awaiting_delivery_payment'], default: 'pending' },
     fulfillmentStatus: { type: String, enum: ['unfulfilled', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'unfulfilled' },
+    paymentMethod: { type: String, enum: ['bank_transfer', 'stc_pay', 'cod'] },
+    transactionId: { type: String },
+    senderName: { type: String },
+    senderPhone: { type: String },
+    bankName: { type: String },
+    iban: { type: String },
+    paymentReceiptUrl: { type: String },
     stripePaymentIntentId: { type: String, default: '' },
     trackingNumber: { type: String, default: '' },
     trackingUrl: { type: String, default: '' },

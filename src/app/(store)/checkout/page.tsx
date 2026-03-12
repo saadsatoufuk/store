@@ -12,10 +12,13 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+    const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'stc_pay' | 'cod'>('bank_transfer');
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
     const [form, setForm] = useState({
         email: '', phone: '', fullName: '', address1: '', address2: '',
         city: '', state: '', zip: '', country: 'SA',
+        transactionId: '', senderName: '', senderPhone: '', bankName: '', iban: ''
     });
 
     const subtotal = getTotal();
@@ -29,9 +32,29 @@ export default function CheckoutPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (paymentMethod !== 'cod' && !receiptFile) {
+            setError('الرجاء إرفاق صورة الإيصال أو الحوالة');
+            return;
+        }
+        
         setLoading(true);
         setError('');
         try {
+            let paymentReceiptUrl = '';
+
+            if (receiptFile) {
+                const formData = new FormData();
+                formData.append('file', receiptFile);
+                const uploadRes = await fetch('/api/upload-payment-receipt', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!uploadRes.ok) throw new Error('فشل رفع الإيصال');
+                const uploadData = await uploadRes.json();
+                paymentReceiptUrl = uploadData.url;
+            }
+
             const res = await fetch('/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -46,6 +69,13 @@ export default function CheckoutPage() {
                     subtotal,
                     tax,
                     total,
+                    paymentMethod,
+                    transactionId: form.transactionId,
+                    senderName: form.senderName,
+                    senderPhone: form.senderPhone,
+                    bankName: form.bankName,
+                    iban: form.iban,
+                    paymentReceiptUrl,
                 }),
             });
             const data = await res.json();
@@ -76,7 +106,7 @@ export default function CheckoutPage() {
             {/* Test mode banner */}
             <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-sm text-amber-800">
                 <AlertCircle size={16} />
-                <span>🧪 وضع الاختبار — استخدم بطاقة 4242 4242 4242 4242</span>
+               
             </div>
 
             <div className="grid lg:grid-cols-5 gap-8">
@@ -147,18 +177,63 @@ export default function CheckoutPage() {
                         {/* Payment */}
                         <div>
                             <h2 className="text-lg font-heading font-bold mb-4">الدفع</h2>
-                            <div className="p-4 border border-border rounded-lg bg-surface">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <CreditCard size={18} />
-                                    <span className="text-sm font-medium">بطاقة ائتمان / مدى</span>
-                                </div>
-                                <div className="space-y-3">
-                                    <input placeholder="رقم البطاقة" className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <input placeholder="MM/YY" className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
-                                        <input placeholder="CVC" className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                            <div className="space-y-4">
+                                {/* Bank Transfer */}
+                                <label className={`block p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'bank_transfer' ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/30'}`}>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <input type="radio" checked={paymentMethod === 'bank_transfer'} onChange={() => setPaymentMethod('bank_transfer')} className="accent-foreground" />
+                                        <span className="font-medium">تحويل بنكي</span>
                                     </div>
-                                </div>
+                                    {paymentMethod === 'bank_transfer' && (
+                                        <div className="mt-4 space-y-3 pl-7">
+                                            <p className="text-sm text-muted">الرجاء تحويل مبلغ الطلب إلى الحساب البنكي أدناه وإرفاق صورة الإيصال.</p>
+                                            <input value={form.bankName} onChange={e => updateField('bankName', e.target.value)} placeholder="اسم البنك المحول منه *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <input value={form.senderName} onChange={e => updateField('senderName', e.target.value)} placeholder="اسم صاحب الحساب *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <input value={form.iban} onChange={e => updateField('iban', e.target.value)} placeholder="رقم الآيبان (IBAN) *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <input value={form.transactionId} onChange={e => updateField('transactionId', e.target.value)} placeholder="الرقم المرجعي للحوالة *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">صورة إيصال التحويل *</label>
+                                                <input type="file" accept="image/*" onChange={e => setReceiptFile(e.target.files?.[0] || null)} required className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-foreground/10 file:text-foreground hover:file:bg-foreground/20" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </label>
+
+                                {/* STC Pay */}
+                                <label className={`block p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'stc_pay' ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/30'}`}>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <input type="radio" checked={paymentMethod === 'stc_pay'} onChange={() => setPaymentMethod('stc_pay')} className="accent-foreground" />
+                                        <span className="font-medium">STC Pay</span>
+                                    </div>
+                                    {paymentMethod === 'stc_pay' && (
+                                        <div className="mt-4 space-y-3 pl-7">
+                                            <p className="text-sm text-muted">الرجاء إرسال المبلغ إلى رقم STC Pay أدناه وإرفاق لقطة شاشة للتحويل.</p>
+                                            <div className="p-3 bg-white rounded-lg border border-border mb-3 text-center">
+                                                <p className="text-sm font-bold text-foreground">رقم STC Pay: 05X XXX XXXX</p>
+                                            </div>
+                                            <input value={form.senderName} onChange={e => updateField('senderName', e.target.value)} placeholder="اسم المرسل *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <input value={form.senderPhone} onChange={e => updateField('senderPhone', e.target.value)} placeholder="رقم STC Pay المحول منه *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <input value={form.transactionId} onChange={e => updateField('transactionId', e.target.value)} placeholder="الرقم المرجعي *" required className="w-full px-4 py-3 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">صورة الإيصال *</label>
+                                                <input type="file" accept="image/*" onChange={e => setReceiptFile(e.target.files?.[0] || null)} required className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-foreground/10 file:text-foreground hover:file:bg-foreground/20" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </label>
+
+                                {/* Cash on Delivery */}
+                                <label className={`block p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/30'}`}>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <input type="radio" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="accent-foreground" />
+                                        <span className="font-medium">الدفع عند الاستلام</span>
+                                    </div>
+                                    {paymentMethod === 'cod' && (
+                                        <div className="mt-2 pl-7">
+                                            <p className="text-sm text-muted">ستقوم بالدفع عند استلام الطلب.</p>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
                         </div>
 
