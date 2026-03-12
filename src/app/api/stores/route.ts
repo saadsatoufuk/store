@@ -33,35 +33,26 @@ export async function POST(request: Request) {
             }
         }
 
-        const headersList = await headers();
-
-const host =
-    headersList.get("x-forwarded-host") ||
-    headersList.get("host") ||
-    "intilaqapp.com";
-
-const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "intilaqapp.com";
-
-// استخراج الـ subdomain
-const subdomain = host.replace(`.${rootDomain}`, "");
-
-// Strict limit: only one store per subdomain
-const existingStoreOnHost = await Site.findOne({ subdomain });
-if (existingStoreOnHost) {
-    return NextResponse.json(
-        { error: "A store already exists for this subdomain." },
-        { status: 403 }
-    );
-}
-
-
-
-        if (!name || !slug || !domain) {
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "intilaqapp.com";
+        const subdomain = slug.toLowerCase();
+        
+        // Strict limit: only one store per subdomain
+        const existingStoreOnSubdomain = await Site.findOne({ subdomain });
+        if (existingStoreOnSubdomain) {
             return NextResponse.json(
-                { error: 'name, slug, and domain are required' },
+                { error: "A store already exists for this subdomain." },
+                { status: 403 }
+            );
+        }
+
+        if (!name || !slug) {
+            return NextResponse.json(
+                { error: 'name and slug are required' },
                 { status: 400 }
             );
         }
+
+        const generatedDomain = `${subdomain}.${rootDomain}`;
 
         // Check for existing site with same slug or domain
         const existing = await Site.findOne({

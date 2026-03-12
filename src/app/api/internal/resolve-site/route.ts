@@ -36,15 +36,13 @@ export async function GET(request: Request) {
 
         let site = null;
 
-        // 1. Try subdomain match
-        if (subdomain) {
-            site = await Site.findOne({ subdomain, isActive: true }).lean();
-        }
+        // 1. Try full domain match (without port) first
+        const domainWithoutPort = host.replace(/:\d+$/, '');
+        site = await Site.findOne({ domain: domainWithoutPort, isActive: true }).lean();
 
-        // 2. Try full domain match (without port)
-        if (!site) {
-            const domainWithoutPort = host.replace(/:\d+$/, '');
-            site = await Site.findOne({ domain: domainWithoutPort, isActive: true }).lean();
+        // 2. Try subdomain match fallback
+        if (!site && subdomain) {
+            site = await Site.findOne({ subdomain, isActive: true }).lean();
         }
 
         if (!site) {

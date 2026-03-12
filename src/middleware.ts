@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     // Platform routes are checked after we attempt to resolve the site,
     // so if the site doesn't exist (e.g. platform domain), we allow these routes.
 
-    const host = request.headers.get('host') || 'localhost';
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost';
 
     try {
         // Call internal API to resolve siteId from the host
